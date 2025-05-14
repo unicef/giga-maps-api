@@ -66,19 +66,12 @@ Get ISO3 codes: [https://www.iban.com/country-codes](https://www.iban.com/countr
 
 ## Getting the data through Jupyter Notebook
 
-The notebook allows you to fetch school geolocation data from the Giga Maps API interactively by selecting a country and entering your API key.
+The notebook file `get_giga_maps_data_from_API.ipynb`in the repository allows you to fetch school geolocation data from the Giga Maps API interactively by selecting a country and entering your API key.
 
 
 ### 1. Load the notebook
 
-You can run it in two ways:
-
-#### Option A: Open in Google Colab (no installation needed)
-
-* Click this badge in the notebook or repo:
-  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/FNS-Division/GIGA-applied-geospatial-tools/blob/main/get_giga_maps_data_from_API.ipynb)
-
-#### Option B: Run locally in Jupyter
+#### Run locally in Jupyter
 
 * Make sure you have Jupyter installed:
 
