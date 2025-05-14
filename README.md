@@ -15,7 +15,7 @@ You can export the data as:
 
 ---
 
-## Requirements
+### Requirements
 
 Ensure you have Python 3 installed.
 
@@ -32,7 +32,7 @@ pip install requests nbformat
 
 ---
 
-## How to Use
+### How to Use
 
 1. **Set your API token**
 
@@ -64,7 +64,7 @@ Get ISO3 codes: [https://www.iban.com/country-codes](https://www.iban.com/countr
    ```
 ---
 
-## Getting the data through Jupyter Notebook
+## Using Jupyter Notebook
 
 The notebook file `get_giga_maps_data_from_API.ipynb`in the repository allows you to fetch school geolocation data from the Giga Maps API interactively by selecting a country and entering your API key.
 
