@@ -13,7 +13,6 @@ You can export the data as:
 * CSV
 * Jupyter Notebook
 
----
 
 ### Requirements
 
@@ -30,7 +29,6 @@ pip install requests nbformat
 * If needed: [How to install Python](https://realpython.com/installing-python/)
 
 
----
 
 ### How to Use
 
@@ -85,7 +83,7 @@ The notebook file `get_giga_maps_data_from_API.ipynb`in the repository allows yo
   ```
 * Navigate to the file `get_giga_maps_data_from_API.ipynb` and open it.
 
----
+
 
 ### 2. Set up your environment
 
@@ -101,7 +99,6 @@ If running in Colab, install geopandas with:
 !pip install geopandas
 ```
 
----
 
 ### 3. How to use it
 
@@ -117,7 +114,6 @@ Once the notebook is open:
    * Convert them into a spatial GeoDataFrame
    * Display a summary
 
----
 
 ### 4. Accessing the data
 
