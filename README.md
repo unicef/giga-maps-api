@@ -62,28 +62,12 @@ Get ISO3 codes: [https://www.iban.com/country-codes](https://www.iban.com/countr
    ```bash
    python download_schools_data.py
    ```
-
-
-
-
-## Notes
-
-* The script handles pagination automatically (1000 records per page).
-* API responses must include the `data` field containing the list of schools.
-* Requests are authenticated using a Bearer token.
-
 ---
 
+## Getting the data through Jupyter Notebook
 
-Here's a clear guide you can include in your documentation or README on how to load, set up, and use the `get_giga_maps_data_from_API.ipynb` file in Jupyter Notebook:
+The notebook allows you to fetch school geolocation data from the Giga Maps API interactively by selecting a country and entering your API key.
 
----
-
-## Running `get_giga_maps_data_from_API.ipynb` in Jupyter Notebook
-
-This notebook allows you to fetch school geolocation data from the Giga Maps API interactively by selecting a country and entering your API key.
-
----
 
 ### 1. Load the notebook
 
