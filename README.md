@@ -13,9 +13,8 @@ You can export the data as:
 * CSV
 * Jupyter Notebook
 
----
 
-## Requirements
+### Requirements
 
 Ensure you have Python 3 installed.
 
@@ -30,9 +29,8 @@ pip install requests nbformat
 * If needed: [How to install Python](https://realpython.com/installing-python/)
 
 
----
 
-## How to Use
+### How to Use
 
 1. **Set your API token**
 
@@ -64,7 +62,7 @@ Get ISO3 codes: [https://www.iban.com/country-codes](https://www.iban.com/countr
    ```
 ---
 
-## Getting the data through Jupyter Notebook
+## Using Jupyter Notebook
 
 The notebook file `get_giga_maps_data_from_API.ipynb`in the repository allows you to fetch school geolocation data from the Giga Maps API interactively by selecting a country and entering your API key.
 
@@ -85,7 +83,7 @@ The notebook file `get_giga_maps_data_from_API.ipynb`in the repository allows yo
   ```
 * Navigate to the file `get_giga_maps_data_from_API.ipynb` and open it.
 
----
+
 
 ### 2. Set up your environment
 
@@ -101,7 +99,6 @@ If running in Colab, install geopandas with:
 !pip install geopandas
 ```
 
----
 
 ### 3. How to use it
 
@@ -117,7 +114,6 @@ Once the notebook is open:
    * Convert them into a spatial GeoDataFrame
    * Display a summary
 
----
 
 ### 4. Accessing the data
 
