@@ -7,7 +7,7 @@ from nbformat.v4 import new_notebook, new_code_cell
 
 
 # --------- Configuration ---------
-BEARER_TOKEN = ".SpIJl30#X4KX0uuH8Z#pMD210a3ZxlLlZ#nIwP5YYoaJZv.__oQErMWp7LKqfBbtYaZCR2TUtJwJkFjyRlZaSgJY*QC2Rt5c69MQo*X2dOp.5nxnU6tWOVlWqWEt6cfUtAsdHlR4GtTVtnJeNnFQg1Cv3y4IDVtui6KacRJq8k3Ryy5QLEyAx.1ThXF5*qu#z3**ovFPnuR*7W_ABEDa_R3iRLn3W7sTHqZ2wGUbHhHBIQ*VQQHvBkdb6O9PaLPSs4O3qre"  # Replace with your actual token
+BEARER_TOKEN = "place_your_API_KEY_here"  # Replace with your actual token
 PAGE_SIZE = 1000
 isocode3 = "BIH"  # Change this to fetch for a different country
 USE_COUNTRY_ENDPOINT = True  # Set to False to use the general endpoint
