@@ -2,12 +2,10 @@ import requests
 import json
 import time
 import csv
-import nbformat
-from nbformat.v4 import new_notebook, new_code_cell
 
 
 # --------- Configuration ---------
-BEARER_TOKEN = "place_your_API_KEY_here"  # Replace with your actual token
+BEARER_TOKEN = ".SpIJl30#X4KX0uuH8Z#pMD210a3ZxlLlZ#nIwP5YYoaJZv.__oQErMWp7LKqfBbtYaZCR2TUtJwJkFjyRlZaSgJY*QC2Rt5c69MQo*X2dOp.5nxnU6tWOVlWqWEt6cfUtAsdHlR4GtTVtnJeNnFQg1Cv3y4IDVtui6KacRJq8k3Ryy5QLEyAx.1ThXF5*qu#z3**ovFPnuR*7W_ABEDa_R3iRLn3W7sTHqZ2wGUbHhHBIQ*VQQHvBkdb6O9PaLPSs4O3qre"  # Replace with your actual token
 PAGE_SIZE = 1000
 isocode3 = "BIH"  # Change this to fetch for a different country
 USE_COUNTRY_ENDPOINT = True  # Set to False to use the general endpoint
@@ -80,19 +78,7 @@ def save_to_csv(data, filename):
 
     print(f"Saved {len(data)} records to {filename}")
 
-# --------- Save to Jupyter Notebook ---------
-def save_to_notebook(data, filename):
-    nb = new_notebook()
-    code = f"import json\n\ndata = {json.dumps(data, indent=2)}\n\nprint(f'Total records: {{len(data)}}')"
-    nb.cells.append(new_code_cell(code))
-
-    with open(filename, "w", encoding="utf-8") as f:
-        nbformat.write(nb, f)
-
-    print(f"Saved data to Jupyter notebook: {filename}")
-
 # --------- Main ---------
 if __name__ == "__main__":
     data = fetch_all_data()
     save_to_csv(data, CSV_OUTPUT_FILE)
-    save_to_notebook(data, NOTEBOOK_OUTPUT_FILE)

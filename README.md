@@ -58,7 +58,7 @@ Get ISO3 codes: [https://www.iban.com/country-codes](https://www.iban.com/countr
    Execute the script:
 
    ```bash
-   python download_schools_data.py
+   python schooldatalocation.py
    ```
 ---
 
