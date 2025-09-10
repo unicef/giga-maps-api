@@ -1,0 +1,1071 @@
+openapi: 3.1.0
+info:
+  title: API Catalogue
+  description: |
+    The Giga API Catalogue provides access to school mapping and connectivity datasets collected by the Giga initiative.  
+    It serves as a central entry point for exploring, querying, and testing Giga’s open data services.
+
+    ## What this API offers
+    The catalogue exposes endpoints that allow you to:
+    - **List available countries** with Giga data, including their ISO3 codes (`/countries`).
+    - **Retrieve school locations** globally or filtered by country or Giga school ID (`/schools_location`, `/schools_location/country/{iso3}`, `/schools_location/giga_id/{id}`).
+    - **Fetch school profiles** containing connectivity, coverage, and infrastructure data (`/school-profile`).
+    - **Explore Giga Meter deployments** including the list of participating countries and schools (`/dailycheckapp_countries`, `/dailycheckapp_schools`).
+    - **Access Giga Meter measurements** to analyze connectivity performance at schools (`/measurements`).
+
+    ## How to interact with the API
+    - Use the **Try it out** feature in the documentation UI to make live requests directly from your browser.
+    - Pass query parameters such as `country_iso3_code`, `id`, `page`, and `size` to filter or paginate results.
+    - Authenticate with your API key using the `Authorization` header:
+      ```
+      Authorization: Bearer <your-token>
+      ```
+    - Responses are returned in JSON format. They include metadata (`success`, `timestamp`) and structured data arrays.
+
+    ## Typical use cases
+    - Visualize schools on a map using latitude and longitude from `/schools_location`.
+    - Build country dashboards by combining `/countries` with `/school-profile` data.
+    - Analyze connectivity performance using `/measurements` from the Giga Meter.
+    - Verify deployment coverage by checking `/dailycheckapp_countries` and `/dailycheckapp_schools`.
+
+    This catalogue is designed to make it easy for developers, researchers, and partners to integrate Giga’s data into dashboards, applications, and analysis pipelines.
+    
+  version: 1.0.0
+  contact:
+    name: Giga Team
+    url: https://giga.global
+    email: gigabcn@unicef.org
+  license:
+    name: CC BY 4.0
+    url: https://creativecommons.org/licenses/by/4.0/
+
+servers:
+  - url: https://uni-ooi-giga-maps-service.azurewebsites.net/api/v1
+    description: Production Server
+    x-default: true
+  - url: https://uni-ooi-giga-meter-backend.azurewebsites.net/api/v1
+    description: Giga Meter Server
+
+paths:
+  /schools_profile:
+    get:
+      summary: Get school profile by id
+      description: |
+        Retrieve location, connectivity, and metadata about a school.
+
+        Use it to:
+        - Display a schools current connectivity_status.
+        - Show name, country, region, and coordinates on a map.
+        - Join with other datasets using the school id.
+        - Power detail views when a user clicks a school marker.
+
+        Returns:
+        - Basic metadata (id, name, country, region).
+        - Coordinates (lat, lon).
+        - connectivity_status as an enum: connected, disconnected, unknown.
+      operationId: getSchoolProfile
+      tags:
+        - School Profile
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
+        - $ref: '#/components/parameters/ISO3Code'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: School profile found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolProfileList'
+              examples:
+                default:
+                  $ref: '#/components/examples/SchoolProfileExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /countries:
+    get:
+      summary: Get list of countries
+      description: |
+        This endpoint returns a list of all countries available in the Giga Maps dataset.
+
+        Use it to:
+        - Check if a country has data in Giga Maps.
+        - Get the country code needed for other API queries.
+        - See the scope of geographic coverage.
+      operationId: getCountries
+      tags:
+        - Countries
+      parameters:
+        - $ref: '#/components/parameters/CountryId'
+        - $ref: '#/components/parameters/CountryISO3Code'
+      responses:
+        '200':
+          description: Country list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountryList'
+              examples:
+                default:
+                  $ref: '#/components/examples/CountryListExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /schools_location:
+    get:
+      summary: School location globally
+      description: |
+        Returns coordinates (lat, lon), school IDs, and names for all mapped schools per country.
+
+        Use it to:
+        - Render school points on a map.
+        - Join with /school-profile via id for details.
+        - Build country-level aggregates once you have country codes.
+
+        Notes:
+        - Payload can be large. Cache responses when possible.
+        - Combine with /countries to discover available coverage.
+      operationId: getSchoolsLocation
+      tags:
+        - School Location
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: School geolocation data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolLocationList'
+              examples:
+                sample:
+                  $ref: '#/components/examples/SchoolLocationExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /schools_location/giga_id/{giga_id}:
+    get:
+      summary: School location by giga school id
+      description: |
+        Returns coordinates (lat, lon) for a specific mapped school.
+
+        Use it to:
+        - Pan and zoom to a single school on a map.
+        - Validate a schools location when you already know its Giga ID.
+      operationId: getSchoolsLocationByGigaId
+      tags:
+        - School Location
+      parameters:
+        - $ref: '#/components/parameters/GigaIdLocation'
+      responses:
+        '200':
+          description: School geolocation data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolLocationListbyId'
+              examples:
+                default:
+                  $ref: '#/components/examples/SchoolLocationExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /schools_location/country/{iso3_code}:
+    get:
+      summary: School location by country_iso3_code
+      description: |
+        Returns coordinates (lat, lon), school IDs, and names for all mapped schools in a country.
+
+        Use it to:
+        - Plot all schools for a target country.
+        - Build country dashboards and coverage views.
+        - Prepare joins with /school-profile for drilldowns.
+      operationId: getSchoolsLocationByISO3Code
+      tags:
+        - School Location
+      parameters:
+        - $ref: '#/components/parameters/ISO3CodeByLocation'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: School geolocation data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolLocationListbyCountry'
+              examples:
+                default:
+                  $ref: '#/components/examples/SchoolLocationExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  
+  /dailycheckapp_schools:
+    servers:
+      - url: https://uni-ooi-giga-meter-backend.azurewebsites.net/api/v1
+        description: Giga Meter Server (default)
+        x-default: true
+      - url: https://uni-ooi-giga-maps-service.azurewebsites.net/api/v1
+        description: Production Server
+    get:
+      summary: Get giga meter schools
+      description: |
+        Lists of all schools registered on Giga Meter.
+
+        Use it to:
+        - Discover where the app is deployed.
+        - Filter analyses to Giga Meter active countries.
+      operationId: getGigaMeterSchools
+      tags:
+        - Giga Meter
+      parameters:
+        - $ref: '#/components/parameters/AcceptHeader'
+      responses:
+        '200':
+          description: Country list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GigaMeterList'
+              examples:
+                default:
+                  $ref: '#/components/examples/GigaMeterCountryListExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /dailycheckapp_countries:
+    servers:
+      - url: https://uni-ooi-giga-meter-backend.azurewebsites.net/api/v1
+        description: Giga Meter Server (default)
+        x-default: true
+      - url: https://uni-ooi-giga-maps-service.azurewebsites.net/api/v1
+        description: Production Server
+    get:
+      summary: Get giga meter countries
+      description: |
+        Lists all countries where Giga Meter is currently installed.
+
+        Use it to:
+        - Discover where the app is deployed.
+        - Filter analyses to Giga Meter active countries.
+        - Cross-reference with /countries to compare coverage.
+      operationId: getGigaMeterCountries
+      tags:
+        - Giga Meter
+      responses:
+        '200':
+          description: Country list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GigaMeterList'
+              examples:
+                default:
+                  $ref: '#/components/examples/GigaMeterCountryListExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  
+  /measurements:
+    servers:
+      - url: https://uni-ooi-giga-meter-backend.azurewebsites.net/api/v1
+        description: Giga Meter Server (default)
+        x-default: true
+      - url: https://uni-ooi-giga-maps-service.azurewebsites.net/api/v1
+        description: Production Server
+    get:
+      summary: Get giga meter measurements
+      description: |
+        Returns the list of registered measurements on the Giga Meter database
+
+      operationId: getGigaMeterMeasurements
+      tags:
+        - Giga Meter
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/orderBy'
+        - $ref: '#/components/parameters/filterBy'
+        - $ref: '#/components/parameters/filterCondition'
+        - $ref: '#/components/parameters/filterValue'
+      responses:
+        '200':
+          description: Country list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GigaMeterMeasurementsList'
+              examples:
+                default:
+                  $ref: '#/components/examples/GigaMeterMeasurementsExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+components:
+  parameters:
+    AcceptHeader:
+      name: Accept
+      in: header
+      description: Media type(s) that is acceptable for the response
+      required: false
+      schema:
+        type: string
+        enum: [application/json]
+        default: application/json
+    GigaIdLocation:
+      name: giga_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: fa0f6f88-a9d7-30dd-9fa6-f1b3a0316394
+      description: Giga school identifier
+    SchoolId:
+      name: giga_id_school
+      in: query
+      required: false
+      description: |
+        Unique school identifier.
+
+        Tips:
+        - Use the id field returned by /schools_location.
+        - Store this id client-side to fetch /school-profile on demand.
+      schema:
+        type: string
+        example: fa0f6f88-a9d7-30dd-9fa6-f1b3a0316394
+    CountryId:
+      name: id
+      in: query
+      required: false
+      description: |
+        Unique Country identifier.
+
+        Tips:
+        - Use the id field returned by /countries.
+        - Store this id client-side to fetch /countries on demand.
+      schema:
+        type: string
+        example: '144'
+    CountryISO3Code:
+      name: country_iso3_code
+      in: query
+      required: false
+      description: |
+        Unique Country iso3 code identifier.
+      schema:
+        type: string
+        example: 'BRA'
+    ISO3CodeByLocation:
+      name: iso3_code
+      in: path
+      required: true
+      description: |
+        Unique Country iso3 code identifier.
+      schema:
+        type: string
+        example: 'BRA'
+    ISO3Code:
+      name: country_iso3_code
+      in: query
+      required: true
+      description: |
+        Unique Country iso3 code identifier.
+      schema:
+        type: string
+        example: 'BRA'
+    Page:
+      name: page
+      in: query
+      required: false
+      description: |
+        Pagination.
+
+      schema:
+        type: string
+        example: '1'
+    Size:
+      name: size
+      in: query
+      required: true
+      description: |
+        Size of the page.
+
+      schema:
+        type: string
+        example: '100'
+    orderBy:
+      name: orderBy
+      in: query
+      required: false
+      description: |
+        The column by which the list needs to be ordered, 
+        eg: pass "created_at" to order by ASC and "-created_at" to order by DESC, 
+        default: -timestamp
+
+      schema:
+        type: string
+        example: 'created_at'
+    filterBy:
+      name: filterBy
+      in: query
+      required: false
+      description: |
+        The column to which filter needs to be applied, eg: timestamp, created_at
+
+      schema:
+        type: string
+        example: 'timestamp'
+    filterCondition:
+      name: filterCondition
+      in: query
+      required: false
+      description: |
+        The filter condition for the filterBy, accepted values are: lt, lte, gt, gte, eq
+      schema:
+        type: string
+        example: 'created_at'
+    filterValue:
+      name: filterValue
+      in: query
+      required: false
+      description: |
+        The filter value which needs to be compared with filterBy column, eg: 2024-01-14 or 2024-01-14T15:13:30.824Z
+
+      schema:
+        type: string
+        example: 'created_at'
+
+  schemas:
+
+    CountryList:
+      type: object
+      description: |
+        A list of countries with available data.
+
+        Use fields to:
+        - Read the display name (name).
+        - Pass country_iso3_code to other endpoints.
+      properties:
+        id:
+          type: string
+          example: '144'
+        country_iso3_code:
+          type: string
+          example: BRA
+        name:
+          type: string
+          example: Brazil
+
+    SchoolLocationList:
+      type: array
+      description: |
+        Geolocation and basic metadata for schools.
+
+        Typical uses:
+        - Plot markers and cluster on the client.
+        - Join by id to enrich with /school-profile.
+      items:
+        type: object
+        properties:
+            school_name:
+              type: string
+              example: C.B.T.A. NUM. 36 EMILIANO ZAPA
+            longitude:
+              type: number
+              format: float
+              example: 140.11725880000003
+            latitude:
+              type: number
+              format: float
+              example: 35.6019333
+            country_iso3_code:
+              type: string
+              example: IND
+            education_level:
+              type: string
+              example: 'null'
+            giga_id_school:
+              type: string
+              example: fa0f6f88-a9d7-30dd-9fa6-f1b3a0316394
+            school_data_source:
+              type: string
+              example: 'null'
+    
+
+    SchoolLocationListbyId:
+      type: array
+      description: |
+        Geolocation and basic metadata for schools.
+
+        Typical uses:
+        - Plot markers and cluster on the client.
+        - Join by id to enrich with /school-profile.
+      items:
+        type: object
+        properties:
+          school_name:
+            type: string
+            example: C.B.T.A. NUM. 36 EMILIANO ZAPA
+          longitude:
+            type: number
+            format: float
+            example: 140.11725880000003
+          latitude:
+            type: number
+            format: float
+            example: 35.6019333
+          country_iso3_code:
+            type: string
+            example: IND
+          education_level:
+            type: string
+            example: 'null'
+          giga_id_school:
+            type: string
+            example: fa0f6f88-a9d7-30dd-9fa6-f1b3a0316394
+          school_data_source:
+            type: string
+            example: 'null'
+        required:
+          - giga_id_school
+         
+    SchoolLocationListbyCountry:
+      type: array
+      description: |
+        Geolocation and basic metadata for schools.
+
+        Typical uses:
+        - Plot markers and cluster on the client.
+        - Join by id to enrich with /school-profile.
+      items:
+        type: object
+        properties:
+          school_name:
+            type: string
+            example: C.B.T.A. NUM. 36 EMILIANO ZAPA
+          longitude:
+            type: number
+            format: float
+            example: 140.11725880000003
+          latitude:
+            type: number
+            format: float
+            example: 35.6019333
+          country_iso3_code:
+            type: string
+            example: IND
+          education_level:
+            type: string
+            example: 'null'
+          giga_id_school:
+            type: string
+            example: fa0f6f88-a9d7-30dd-9fa6-f1b3a0316394
+          school_data_source:
+            type: string
+            example: 'null'
+        required:
+          - country_iso3_code
+    
+    GigaMeterList:
+      type: array
+      description: |
+        This is the list of registered schools on the Giga Meter database.
+
+        Typical uses:
+        - Plot markers and cluster on the client.
+        - Join by id to enrich with /school-profile.
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+            example: 11553398
+          user_id:
+            type: string
+            example: "e4e12c5d-84de-4f97-98fa-d5344f07d152"
+          giga_id_school:
+            type: string
+            example: "59b84d32-b0d2-3438-b3e1-9831db5fd9eb"
+          mac_address:
+            type: string
+            example: "874ddfbe-ceb3-4f27-9fd4-eb7bdb13855b"
+          os:
+            type: string
+            example: "windows"
+          app_version:
+            type: string
+            example: "2.0.1"
+          created:
+            type: string
+            example: "025-08-26AM8:46:25-07:00"
+          network_information:
+            type: string
+            example: "null"
+          country_code:
+            type: string
+            example: "MW"
+          is_blocked:
+            type: boolean
+            example: false
+          created_at:
+            type: string
+            example: "2025-08-26T06:44:38.957Z"
+
+    GigaMeterMeasurementsList:
+        type: array
+        description: |
+          This is the list of test results collected from the Giga Meter app.
+
+          Typical uses:
+          - Analyze school connectivity performance.
+          - Track download, upload, and latency metrics.
+          - Cross-reference results with a specific school via giga_id_school.
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "result-001"
+            Timestamp:
+              type: string
+              format: date-time
+              example: "2025-08-26T09:57:55.385Z"
+            UUID:
+              type: string
+              example: "e4e12c5d-84de-4f97-98fa-d5344f07d152"
+            BrowserID:
+              type: string
+              example: "firefox-118"
+            DeviceType:
+              type: string
+              example: "laptop"
+            Notes:
+              type: string
+              example: "Test conducted during school hours"
+            ClientInfo:
+              type: object
+              properties:
+                ASN:
+                  type: object
+                  example: {}
+                ISP:
+                  type: string
+                  example: "Vodafone"
+                Hostname:
+                  type: string
+                  example: "client.example.com"
+                City:
+                  type: string
+                  example: "Kigali"
+                Postal:
+                  type: string
+                  example: "25000"
+                Region:
+                  type: string
+                  example: "Kigali Province"
+                Country:
+                  type: string
+                  example: "Rwanda"
+                Latitude:
+                  type: number
+                  example: -1.94995
+                Longitude:
+                  type: number
+                  example: 30.05885
+                Timezone:
+                  type: string
+                  example: "Africa/Kigali"
+            ServerInfo:
+              type: object
+              properties:
+                URL:
+                  type: string
+                  example: "https://speedtest.giga.global"
+                City:
+                  type: string
+                  example: "Nairobi"
+                FQDN:
+                  type: string
+                  example: "server.giga.global"
+                IPv4:
+                  type: string
+                  example: "192.168.1.1"
+                IPv6:
+                  type: string
+                  example: "2001:db8::1"
+                Site:
+                  type: string
+                  example: "test-site"
+                Label:
+                  type: string
+                  example: "Giga Nairobi Node"
+                Metro:
+                  type: string
+                  example: "NAI"
+                Country:
+                  type: string
+                  example: "Kenya"
+            annotation:
+              type: string
+              example: "Baseline measurement"
+            Download:
+              type: number
+              example: 42.5
+            Upload:
+              type: number
+              example: 18.7
+            Latency:
+              type: number
+              example: 35
+            DataUploaded:
+              type: number
+              example: 1500
+            DataDownloaded:
+              type: number
+              example: 3200
+            DataUsage:
+              type: number
+              example: 4700
+            Results:
+              type: object
+              example: {}
+            giga_id_school:
+              type: string
+              example: "59b84d32-b0d2-3438-b3e1-9831db5fd9eb"
+            country_code:
+              type: string
+              example: "RW"
+            app_version:
+              type: string
+              example: "2.1.0"
+            source:
+              type: string
+              example: "giga-meter-app"
+            created_at:
+              type: string
+              format: date-time
+              example: "2025-08-26T09:57:55.385Z"
+
+    SchoolProfileList:
+      type: array
+      description: |
+        Connectivity information and administrative context for schools.
+
+        Typical uses:
+        - Display connectivity status and type by school.
+        - Filter schools by area type (urban/rural) or admin divisions.
+        - Join with SchoolLocationList or SchoolProfile via giga_id_school.
+      items:
+        type: object
+        properties:
+          giga_id_school:
+            type: string
+            example: "63955a91-d652-3bce-97af-72918cb4259b"
+          school_area_type:
+            type: string
+            example: "urban"
+          country_iso3_code:
+            type: string
+            example: "BRA"
+          admin1:
+            type: string
+            example: "Rio de Janeiro"
+          admin2:
+            type: string
+            example: "Rio de Janeiro"
+          connectivity:
+            type: boolean
+            example: true
+          connectivity_RT:
+            type: boolean
+            example: true
+          connectivity_RT_datasource:
+            type: string
+            example: 'null'
+          connectivity_type:
+            type: string
+            example: "{ADSL,NULL}"
+          school_data_source:
+            type: string
+            example: 'null'
+  
+
+    Error:
+      type: object
+      description: Standard error body
+      properties:
+        message:
+          type: string
+          example: Invalid request
+        status:
+          type: integer
+          example: 400
+
+  examples:
+
+    CountryListExample:
+      summary: Example country list
+      value:
+        id: '144'
+        country_iso3_code: BRA
+        name: Brazil
+
+    SchoolLocationExample:
+      summary: Example school locations response
+      value:
+        - school_name: "INST EST EDUC PEREIRA CORUJA"
+          longitude: -51.86830139160156
+          latitude: -29.800189971923828
+          education_level: "Pre-Primary, Primary, Secondary and Post-Secondary"
+          country_iso3_code: "BRA"
+          giga_id_school: "fa0f6f88-a9d7-30dd-9fa6-f1b3a0316394"
+          school_data_source: 'null'
+        - school_name: "ESCOLA MUNICIPAL AYRTON SENNA"
+          longitude: -48.61051559448242
+          latitude: -26.07830047607422
+          education_level: "Primary"
+          country_iso3_code: "BRA"
+          giga_id_school: "c28fa5af-724a-3264-91f8-64dc83e878a9"
+          school_data_source: 'null'
+        - school_name: "SANTO REI C E CEF M"
+          longitude: -52.45631790161133
+          latitude: -24.670928955078125
+          education_level: "Primary and Secondary"
+          country_iso3_code: "BRA"
+          giga_id_school: "dd288ed3-2477-3a31-8f4e-625e4c1445f9"
+          school_data_source: 'null'
+        - school_name: "ESCOLA MUNICIPAL PROFESSOR EURICO SILVA"
+          longitude: -48.23309326171875
+          latitude: -18.95256805419922
+          education_level: "Primary and Post-Secondary"
+          country_iso3_code: "BRA"
+          giga_id_school: "62125511-600b-3140-8ec5-18781153891d"
+          school_data_source: 'null'
+
+
+    GigaMeterCountryListExample:
+          summary: Example giga meter country list
+          value:
+          - id: 11553398
+            user_id: e4e12c5d-84de-4f97-98fa-d5344f07d152
+            giga_id_school: 59b84d32-b0d2-3438-b3e1-9831db5fd9eb
+            mac_address: 874ddfbe-ceb3-4f27-9fd4-eb7bdb13855b
+            os: windows
+            app_version: 2.0.1
+            created: 2025-08-26AM8:46:25-07:00
+            network_information: 'null'
+            country_code: MW
+            is_blocked: false
+            created_at: 2025-08-26T06:44:38.957Z
+
+    GigaMeterMeasurementsExample:
+          summary: Example giga meter measurements results list
+          value:
+            - id: '11553398'
+              Timestamp: "2025-08-26T09:57:55.385Z"
+              UUID: "e4e12c5d-84de-4f97-98fa-d5344f07d152"
+              BrowserID: "firefox-118"
+              DeviceType: "laptop"
+              Notes: "Test conducted during school hours"
+              ClientInfo:
+                ASN: {}
+                ISP: "Vodafone"
+                Hostname: "client.example.com"
+                City: "Kigali"
+                Postal: "25000"
+                Region: "Kigali Province"
+                Country: "Rwanda"
+                Latitude: -1.94995
+                Longitude: 30.05885
+                Timezone: "Africa/Kigali"
+              ServerInfo:
+                URL: "https://speedtest.giga.global"
+                City: "Nairobi"
+                FQDN: "server.giga.global"
+                IPv4: "192.168.1.1"
+                IPv6: "2001:db8::1"
+                Site: "test-site"
+                Label: "Giga Nairobi Node"
+                Metro: "NAI"
+                Country: "Kenya"
+              annotation: "Baseline measurement"
+              Download: 42.5
+              Upload: 18.7
+              Latency: 35
+              DataUploaded: 1500
+              DataDownloaded: 3200
+              DataUsage: 4700
+              Results: {}
+              giga_id_school: "59b84d32-b0d2-3438-b3e1-9831db5fd9eb"
+              country_code: "RW"
+              app_version: "2.1.0"
+              source: "giga-meter-app"
+              created_at: "2025-08-26T09:57:55.385Z"
+    
+    SchoolProfileExample:
+      summary: Example of school profile
+      value:
+        - giga_id_school: "63955a91-d652-3bce-97af-72918cb4259b"
+          school_area_type: "urban"
+          country_iso3_code: "BRA"
+          admin1: "Rio de Janeiro"
+          admin2: "Rio de Janeiro"
+          connectivity: true
+          connectivity_RT: true
+          connectivity_RT_datasource: 'null'
+          connectivity_type: "{ADSL,NULL}"
+          school_data_source: 'null'
+        - giga_id_school: "72a11c47-b2fc-49f1-84db-1de88272c552"
+          school_area_type: "rural"
+          country_iso3_code: "COL"
+          admin1: "Antioquia"
+          admin2: "Medellín"
+          connectivity: false
+          connectivity_RT: false
+          connectivity_RT_datasource: 'null'
+          connectivity_type: "NULL"
+          school_data_source: "survey"
+        - giga_id_school: "9ac582d1-6ff0-4d21-8ef8-41f3a1847f0b"
+          school_area_type: "urban"
+          country_iso3_code: "RWA"
+          admin1: "Kigali"
+          admin2: "Gasabo"
+          connectivity: true
+          connectivity_RT: true
+          connectivity_RT_datasource: "telecom_api"
+          connectivity_type: "fiber"
+          school_data_source: "government_registry"
+
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            default:
+              summary: Example not found error
+              value:
+                message: The API endpoint is not found.
+                status: 404
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            default:
+              summary: Example internal server error
+              value:
+                message: An unexpected error occurred on the server.
+                status: 500
+    ServiceUnavailable:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            default:
+              summary: Example service unavailable response
+              value:
+                message: Service temporarily unavailable. Please try again later.
+                status: 503
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT   # optional, just hints the token type
+
+
+tags:
+  - name: School Location
+    description: |
+      Information about mapped schools.
+
+      Use for:
+      - Plotting school points and clusters.
+      - Fetching country-wide or single-school locations.
+  - name: Countries
+    description: |
+      Lists of countries available in Giga APIs.
+
+      Use for:
+      - Discovering coverage.
+      - Getting ISO3 codes for other endpoints.
+  - name: Giga Meter
+    description: |
+      Information collected from the Giga Meter app.
+
+      Use for:
+      - Finding where the app is installed.
+      - Scoping analyses to active deployments.
+  - name: School Profile
+    description: |
+      API to list connectivity, coverage, and key infrastructure data about schools.
+
+      Use for:
+      - Detail views and drilldowns.
+      - Status summaries per school.
+
+security:
+  - BearerAuth: []
